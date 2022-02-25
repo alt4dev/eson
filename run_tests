@@ -1,0 +1,9 @@
+#!/bin/bash
+
+TEST_MODULE="./..."
+
+if [ -n "$1" ]; then
+  TEST_MODULE="./$1"
+fi
+
+go test -v -race -coverprofile=/dev/null -covermode=atomic $TEST_MODULE
