@@ -21,7 +21,7 @@ func TestEncode(t *testing.T) {
 		Registered: time.Now(),
 	}
 
-	encodedData, err := Encode(data)
+	encodedData, err := Encode(data, false)
 	if err != nil {
 		t.Error(err)
 		return
@@ -43,7 +43,7 @@ func TestEncodeList(t *testing.T) {
 	time3 := time.Now().Add(time.Second * 30)
 
 	times := []time.Time{time1, time2, time3}
-	encodedData, err := Encode(times)
+	encodedData, err := Encode(times, false)
 	if err != nil {
 		t.Error(err)
 		return

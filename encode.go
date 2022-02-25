@@ -6,10 +6,16 @@ import (
 	"reflect"
 )
 
-func Encode(goObject interface{}) (string, error) {
+func Encode(goObject interface{}, pretty bool) (string, error) {
 	goObject = preProcess(goObject)
 
-	resp, err := json.Marshal(goObject)
+	var resp []byte
+	var err error
+	if pretty {
+		resp, err = json.MarshalIndent(goObject, "", "    ")
+	} else {
+		resp, err = json.Marshal(goObject)
+	}
 	if err != nil {
 		return "", err
 	}
