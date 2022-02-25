@@ -37,8 +37,7 @@ func preProcess(goObject interface{}) (processedObject interface{}) {
 	case reflect.Struct:
 		processedObject = processStruct(goObject)
 		break
-	case reflect.Array:
-	case reflect.Slice:
+	case reflect.Slice, reflect.Array:
 		goArray := make([]interface{}, 0)
 		for i := 0; i < objectValue.Len(); i++ {
 			goArray = append(goArray, objectValue.Index(i).Interface())
@@ -87,7 +86,7 @@ func processStruct(theStruct interface{}) interface{} {
 		value := structValue.FieldByName(field.Name)
 		encoded[key] = value.Interface()
 	}
-	return processMap(encoded)
+	return preProcess(encoded)
 }
 
 func processArray(theArray []interface{}) interface{} {
