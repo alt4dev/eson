@@ -13,17 +13,18 @@ type Extension interface {
 
 var extensions map[string]Extension
 
-func init(){
+func init() {
 	extensions = make(map[string]Extension)
+	AddExtension("EsonDatetime", DateTimeExtension{})
 }
 
-func AddExtension(name string, extension Extension){
+func AddExtension(name string, extension Extension) {
 	extensions[name] = extension
 }
 
 func EncodeValue(key string, value interface{}) (string, interface{}) {
 	for name, ext := range extensions {
-		if ext.ShouldEncode(value){
+		if ext.ShouldEncode(value) {
 			return fmt.Sprintf("%s~%s", name, key), ext.Encode(value)
 		}
 	}
