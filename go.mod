@@ -1,3 +1,3 @@
 module github.com/alt4dev/eson
 
-go 1.17
+go 1.14
