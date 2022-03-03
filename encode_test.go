@@ -16,11 +16,12 @@ type testStruct struct {
 }
 
 func TestEncode(t *testing.T) {
+	now := time.Now()
 	data := testStruct{
 		Name:       "Jane Doe",
-		DOB:        time.Now(),
+		DOB:        now,
 		Roles:      []string{"admin", "client"},
-		Registered: time.Now(),
+		Registered: now,
 	}
 
 	encodedData, err := Encode(data, false)
