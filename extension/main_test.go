@@ -7,11 +7,11 @@ import (
 )
 
 // An extension that converts integers to binary
-type BinExtension struct{}
+type BinExtension struct {}
 
-func (ext BinExtension) ShouldEncode(value interface{}) (bool, bool) {
+func (ext BinExtension) ShouldEncode(value interface{}) bool {
 	_, ok := value.(int)
-	return ok, false
+	return ok
 }
 
 func (ext BinExtension) Encode(value interface{}) interface{} {
@@ -19,7 +19,7 @@ func (ext BinExtension) Encode(value interface{}) interface{} {
 	return fmt.Sprint(strconv.FormatInt(val, 2))
 }
 
-func (ext BinExtension) Decode(value interface{}, asPointer bool) interface{} {
+func (ext BinExtension) Decode(value interface{}) interface{} {
 	i, _ := strconv.ParseInt(value.(string), 2, 64)
 	return int(i)
 }

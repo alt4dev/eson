@@ -6,9 +6,9 @@ import (
 )
 
 type Extension interface {
-	ShouldEncode(value interface{}) (valid bool, asPointer bool)
+	ShouldEncode(value interface{}) bool
 	Encode(value interface{}) interface{}
-	Decode(value interface{}, asPointer bool) interface{}
+	Decode(value interface{}) interface{}
 }
 
 var extensions map[string]Extension
@@ -24,12 +24,8 @@ func AddExtension(name string, extension Extension) {
 
 func EncodeValue(key string, value interface{}) (string, interface{}) {
 	for name, ext := range extensions {
-		if valid, asPointer := ext.ShouldEncode(value); valid {
-			prefix := ""
-			if asPointer {
-				prefix = "*"
-			}
-			return fmt.Sprintf("%s%s~%s", prefix, name, key), ext.Encode(value)
+		if ext.ShouldEncode(value) {
+			return fmt.Sprintf("%s~%s", name, key), ext.Encode(value)
 		}
 	}
 	return key, value
@@ -40,15 +36,9 @@ func DecodeValue(key string, encodedValue interface{}) (string, interface{}) {
 	if len(keyParts) != 2 {
 		return key, encodedValue
 	}
-	extensionName := keyParts[0]
-	isPointer := strings.HasPrefix(extensionName, "*")
-	if isPointer {
-		extensionName = strings.Replace(extensionName, "*", "", 1)
-	}
-	ext, ok := extensions[extensionName]
+	ext, ok := extensions[keyParts[0]]
 	if !ok {
 		return keyParts[1], encodedValue
 	}
-
-	return keyParts[1], ext.Decode(encodedValue, isPointer)
+	return keyParts[1], ext.Decode(encodedValue)
 }
