@@ -12,7 +12,7 @@ type testStruct struct {
 	NextOfKin  string    `json:"-"` // Skipped in JSON
 	DOB        time.Time `json:"date_of_birth"`
 	Roles      []string  `json:"roles"`
-	Registered time.Time
+	Registered *time.Time
 }
 
 func TestEncode(t *testing.T) {
@@ -21,7 +21,7 @@ func TestEncode(t *testing.T) {
 		Name:       "Jane Doe",
 		DOB:        now,
 		Roles:      []string{"admin", "client"},
-		Registered: now,
+		Registered: &now,
 	}
 
 	encodedData, err := Encode(data, false)
@@ -30,7 +30,7 @@ func TestEncode(t *testing.T) {
 		return
 	}
 
-	expectedOutput := fmt.Sprintf(`{"EsonDatetime~Registered":%v,"EsonDatetime~date_of_birth":%v,"name":"Jane Doe","roles":["admin","client"]}`, data.Registered.UnixMilli(), data.DOB.UnixMilli())
+	expectedOutput := fmt.Sprintf(`{"*EsonDatetime~Registered":%v,"EsonDatetime~date_of_birth":%v,"name":"Jane Doe","roles":["admin","client"]}`, data.Registered.UnixMilli(), data.DOB.UnixMilli())
 
 	if expectedOutput != encodedData {
 		t.Error("UnExpected JSON output")

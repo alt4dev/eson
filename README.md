@@ -56,3 +56,6 @@ eson_data = eson.Encode(user, true)
 """
 ```
 
+### Known Issues
+- Decoding to pointers<br />
+    A struct with an attribute as a pointer can be correctly encoded but we're still facing some issues 
