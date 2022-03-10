@@ -1,4 +1,4 @@
-# Extended JSON(ESON)
+# [Extended JSON(ESON)](https://pkg.go.dev/mod/github.com/alt4dev/eson)
 
 This is an implementation of https://github.com/Billcountry/eson in golang.
 
