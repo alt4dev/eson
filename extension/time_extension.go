@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+const MilliSecMultiplier int64 = 1000000
+
 type DateTimeExtension struct{}
 
 func (ext DateTimeExtension) ShouldEncode(value interface{}) bool {
@@ -13,10 +15,10 @@ func (ext DateTimeExtension) ShouldEncode(value interface{}) bool {
 
 func (ext DateTimeExtension) Encode(value interface{}) interface{} {
 	val := value.(time.Time)
-	return val.UnixMilli()
+	return val.UnixNano() / MilliSecMultiplier
 }
 
 func (ext DateTimeExtension) Decode(encodedValue interface{}) interface{} {
 	val := encodedValue.(float64)
-	return time.Unix(0, int64(val)*1000000)
+	return time.Unix(0, int64(val)*MilliSecMultiplier)
 }
