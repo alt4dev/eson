@@ -26,6 +26,7 @@ func preProcess(goObject interface{}) (processedObject interface{}) {
 	objectValue := reflect.ValueOf(goObject)
 	if objectValue.Type().Kind() == reflect.Ptr {
 		objectValue = reflect.Indirect(objectValue)
+		goObject = objectValue.Interface()
 	}
 
 	processedObject = goObject
