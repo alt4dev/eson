@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func Decode(jsonString string, destination interface{}) error {
+func DecodeWithTag(tag string, jsonString string, destination interface{}) error {
 	var encodedData interface{}
 	err := json.Unmarshal([]byte(jsonString), &encodedData)
 	if err != nil {
@@ -14,11 +14,15 @@ func Decode(jsonString string, destination interface{}) error {
 	}
 	decodedData := processEncodedData(encodedData)
 
-	setDataToDestination(decodedData, destination)
+	setDataToDestination(tag, decodedData, destination)
 	return nil
 }
 
-func setDataToDestination(decodedData interface{}, destination interface{}) {
+func Decode(jsonString string, destination interface{}) error {
+	return DecodeWithTag(*tagName, jsonString, destination)
+}
+
+func setDataToDestination(tagToUse string, decodedData interface{}, destination interface{}) {
 	destinationValue := reflect.ValueOf(destination)
 	destinationType := reflect.TypeOf(destination)
 	if destinationType.Kind() == reflect.Ptr {
@@ -36,7 +40,7 @@ func setDataToDestination(decodedData interface{}, destination interface{}) {
 		for _, key := range decodedValue.MapKeys() {
 			decodedMapValue := decodedValue.MapIndex(key)
 			valueToSet := reflect.New(mapType)
-			setDataToDestination(decodedMapValue.Interface(), valueToSet.Interface())
+			setDataToDestination(tagToUse, decodedMapValue.Interface(), valueToSet.Interface())
 			destinationValue.SetMapIndex(key, valueToSet)
 		}
 		return
@@ -58,7 +62,7 @@ func setDataToDestination(decodedData interface{}, destination interface{}) {
 			}
 
 			fieldName := field.Name
-			if tag, ok := field.Tag.Lookup(tagName); ok {
+			if tag, ok := field.Tag.Lookup(tagToUse); ok {
 				if tag == "-" {
 					continue
 				}
@@ -73,7 +77,7 @@ func setDataToDestination(decodedData interface{}, destination interface{}) {
 
 			fieldValue := destinationValue.Field(i)
 			valueToSet := fieldValue.Interface()
-			setDataToDestination(decodedStructValue, &valueToSet)
+			setDataToDestination(tagToUse, decodedStructValue, &valueToSet)
 			value := reflect.ValueOf(valueToSet)
 			destinationValue.Field(i).Set(value)
 		}
@@ -85,7 +89,7 @@ func setDataToDestination(decodedData interface{}, destination interface{}) {
 		for i := 0; i < decodedValue.Len(); i++ {
 			sliceValue := decodedValue.Index(i).Interface()
 			valueToSet := reflect.New(sliceType)
-			setDataToDestination(sliceValue, valueToSet.Interface())
+			setDataToDestination(tagToUse, sliceValue, valueToSet.Interface())
 			newSlice = reflect.Append(newSlice, reflect.Indirect(valueToSet))
 		}
 

@@ -7,15 +7,17 @@ import (
 )
 
 type testStruct struct {
-	Name       string    `json:"name"`
+	Name       string    `json:"name" bigquery:"Norm"`
 	email      string    // Skipped because it's not exported
-	NextOfKin  string    `json:"-"` // Skipped in JSON
-	DOB        time.Time `json:"date_of_birth"`
-	Roles      []string  `json:"roles"`
+	NextOfKin  string    `json:"-" bigquery:"-"` // Skipped in JSON
+	DOB        time.Time `json:"date_of_birth" bigquery:"Data"`
+	Roles      []string  `json:"roles" bigquery:"roles"`
 	Registered time.Time
 }
 
 func TestEncode(t *testing.T) {
+	SetTagName("bigquery")
+	defer SetTagName(DefaultTag)
 	now := time.Now()
 	data := testStruct{
 		Name:       "Jane Doe",
@@ -30,12 +32,27 @@ func TestEncode(t *testing.T) {
 		return
 	}
 
-	expectedOutput := fmt.Sprintf(`{"EsonDatetime~Registered":%v,"EsonDatetime~date_of_birth":%v,"name":"Jane Doe","roles":["admin","client"]}`, data.Registered.UnixMilli(), data.DOB.UnixMilli())
+	expectedOutput := fmt.Sprintf(`{"EsonDatetime~Data":%v,"EsonDatetime~Registered":%v,"Norm":"Jane Doe","roles":["admin","client"]}`, data.Registered.UnixMilli(), data.DOB.UnixMilli())
 
 	if expectedOutput != encodedData {
 		t.Error("UnExpected JSON output")
 		t.Error("Expected:", expectedOutput)
 		t.Error("Found:   ", encodedData)
+		return
+	}
+
+	// Test encoding data using a different tag than set.
+	expectedJsonTagOutput := fmt.Sprintf(`{"EsonDatetime~Registered":%v,"EsonDatetime~date_of_birth":%v,"name":"Jane Doe","roles":["admin","client"]}`, data.Registered.UnixMilli(), data.DOB.UnixMilli())
+	encodedWithJsonTag, err := EncodeWithTag("json", data, false)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if expectedJsonTagOutput != encodedWithJsonTag {
+		t.Error("UnExpected JSON output")
+		t.Error("Expected:", expectedJsonTagOutput)
+		t.Error("Found:   ", encodedWithJsonTag)
 		return
 	}
 }

@@ -102,7 +102,7 @@ type Extension interface {
 
 The example below shows ESON's datetime extension
 ```go
-package extension
+package main
 
 import (
 	"time"
@@ -129,9 +129,21 @@ func (ext DateTimeExtension) Decode(encodedValue interface{}) interface{} {
 }
 
 // You can add the extension for use as follows
-func init() {
+func main() {
     extension.AddExtension("EsonDatetime", DateTimeExtension{})
 }
 ```
 
+### Custom Tags
+Eson allows custom tags. By default the tag `json` is used. You can however choose any tag you want by:
+
+```go
+package main
+
+"github.com/alt4dev/eson"
+
+func main() {
+	eson.SetTagName("my-tag")
+}
+```
 

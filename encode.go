@@ -6,8 +6,8 @@ import (
 	"reflect"
 )
 
-func Encode(goObject interface{}, pretty bool) (string, error) {
-	goObject = preProcess(goObject)
+func EncodeWithTag(tag string, goObject interface{}, pretty bool) (string, error) {
+	goObject = preProcess(tag, goObject)
 
 	var resp []byte
 	var err error
@@ -22,7 +22,11 @@ func Encode(goObject interface{}, pretty bool) (string, error) {
 	return string(resp), nil
 }
 
-func preProcess(goObject interface{}) (processedObject interface{}) {
+func Encode(goObject interface{}, pretty bool) (string, error) {
+	return EncodeWithTag(*tagName, goObject, pretty)
+}
+
+func preProcess(tagToUse string, goObject interface{}) (processedObject interface{}) {
 	objectValue := reflect.ValueOf(goObject)
 	if objectValue.Type().Kind() == reflect.Ptr {
 		objectValue = reflect.Indirect(objectValue)
@@ -33,36 +37,36 @@ func preProcess(goObject interface{}) (processedObject interface{}) {
 
 	switch objectValue.Type().Kind() {
 	case reflect.Map:
-		processedObject = processMap(goObject.(map[string]interface{}))
+		processedObject = processMap(tagToUse, goObject.(map[string]interface{}))
 		break
 	case reflect.Struct:
-		processedObject = processStruct(goObject)
+		processedObject = processStruct(tagToUse, goObject)
 		break
 	case reflect.Slice, reflect.Array:
 		goArray := make([]interface{}, 0)
 		for i := 0; i < objectValue.Len(); i++ {
 			goArray = append(goArray, objectValue.Index(i).Interface())
 		}
-		processedObject = processArray(goArray)
+		processedObject = processArray(tagToUse, goArray)
 		break
 	}
 	return processedObject
 }
 
-func processMap(theMap map[string]interface{}) interface{} {
+func processMap(tagToUse string, theMap map[string]interface{}) interface{} {
 	encoded := make(map[string]interface{})
 	for key, value := range theMap {
 		encodedKey, encodedValue := extension.EncodeValue(key, value)
 		if key == encodedKey {
 			// Preprocess the value
-			encodedValue = preProcess(value)
+			encodedValue = preProcess(tagToUse, value)
 		}
 		encoded[encodedKey] = encodedValue
 	}
 	return encoded
 }
 
-func processStruct(theStruct interface{}) interface{} {
+func processStruct(tagToUse string, theStruct interface{}) interface{} {
 	encoded := make(map[string]interface{})
 	structType := reflect.TypeOf(theStruct)
 	structValue := reflect.ValueOf(theStruct)
@@ -75,7 +79,7 @@ func processStruct(theStruct interface{}) interface{} {
 		}
 
 		key := field.Name
-		if jsonTag, ok := field.Tag.Lookup(tagName); ok {
+		if jsonTag, ok := field.Tag.Lookup(tagToUse); ok {
 			if jsonTag == "-" {
 				continue
 			}
@@ -87,10 +91,10 @@ func processStruct(theStruct interface{}) interface{} {
 		value := structValue.FieldByName(field.Name)
 		encoded[key] = value.Interface()
 	}
-	return preProcess(encoded)
+	return preProcess(tagToUse, encoded)
 }
 
-func processArray(theArray []interface{}) interface{} {
+func processArray(tagToUse string, theArray []interface{}) interface{} {
 	arrayOut := make([]interface{}, len(theArray))
 	for i, value := range theArray {
 		key, encodedValue := extension.EncodeValue("", value)
@@ -98,7 +102,7 @@ func processArray(theArray []interface{}) interface{} {
 			encodedValue = map[string]interface{}{key: encodedValue}
 		} else {
 			// Preprocess the value
-			encodedValue = preProcess(encodedValue)
+			encodedValue = preProcess(tagToUse, encodedValue)
 		}
 		arrayOut[i] = encodedValue
 	}
