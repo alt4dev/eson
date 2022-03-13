@@ -58,7 +58,7 @@ func setDataToDestination(decodedData interface{}, destination interface{}) {
 			}
 
 			fieldName := field.Name
-			if tag, ok := field.Tag.Lookup("json"); ok {
+			if tag, ok := field.Tag.Lookup(tagName); ok {
 				if tag == "-" {
 					continue
 				}

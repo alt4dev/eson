@@ -75,7 +75,7 @@ func processStruct(theStruct interface{}) interface{} {
 		}
 
 		key := field.Name
-		if jsonTag, ok := field.Tag.Lookup("json"); ok {
+		if jsonTag, ok := field.Tag.Lookup(tagName); ok {
 			if jsonTag == "-" {
 				continue
 			}
