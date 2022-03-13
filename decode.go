@@ -6,20 +6,25 @@ import (
 	"reflect"
 )
 
-func DecodeWithTag(tag string, jsonString string, destination interface{}) error {
+func DecodeWithTag(tag string, jsonString string, destination interface{}, extensions ...extension.Extension) error {
 	var encodedData interface{}
 	err := json.Unmarshal([]byte(jsonString), &encodedData)
 	if err != nil {
 		return err
 	}
-	decodedData := processEncodedData(encodedData)
+	// Use default tags if no extensions are set.
+	if len(extensions) == 0 {
+		extensions = DefaultExtensions
+	}
+
+	decodedData := processEncodedData(encodedData, extensions)
 
 	setDataToDestination(tag, decodedData, destination)
 	return nil
 }
 
-func Decode(jsonString string, destination interface{}) error {
-	return DecodeWithTag(*tagName, jsonString, destination)
+func Decode(jsonString string, destination interface{}, extensions ...extension.Extension) error {
+	return DecodeWithTag(*tagName, jsonString, destination, extensions...)
 }
 
 func setDataToDestination(tagToUse string, decodedData interface{}, destination interface{}) {
@@ -101,7 +106,7 @@ func setDataToDestination(tagToUse string, decodedData interface{}, destination 
 	}
 }
 
-func processEncodedData(encodedData interface{}) interface{} {
+func processEncodedData(encodedData interface{}, extensions []extension.Extension) interface{} {
 	value := reflect.ValueOf(encodedData)
 	processedData := encodedData
 	switch value.Type().Kind() {
@@ -110,38 +115,38 @@ func processEncodedData(encodedData interface{}) interface{} {
 		for _, key := range value.MapKeys() {
 			encodedMap[key.String()] = value.MapIndex(key).Interface()
 		}
-		processedData = processEncodedMap(encodedMap)
+		processedData = processEncodedMap(encodedMap, extensions)
 		break
 	case reflect.Array, reflect.Slice:
 		encodedArray := make([]interface{}, 0)
 		for i := 0; i < value.Len(); i++ {
 			encodedArray = append(encodedArray, value.Index(i).Interface())
 		}
-		processedData = processEncodedArray(encodedArray)
+		processedData = processEncodedArray(encodedArray, extensions)
 		break
 	}
 	return processedData
 }
 
-func processEncodedMap(encodedMap map[string]interface{}) interface{} {
+func processEncodedMap(encodedMap map[string]interface{}, extensions []extension.Extension) interface{} {
 	decodedMap := make(map[string]interface{})
 
 	for encodedKey, encodedValue := range encodedMap {
-		key, value := extension.DecodeValue(encodedKey, encodedValue)
+		key, value := extension.DecodeValue(encodedKey, encodedValue, extensions)
 		if key != encodedKey && key == "" {
 			// From array value
 			return value
 		}
-		decodedMap[key] = processEncodedData(value)
+		decodedMap[key] = processEncodedData(value, extensions)
 	}
 	return decodedMap
 }
 
-func processEncodedArray(encodedArray []interface{}) interface{} {
+func processEncodedArray(encodedArray []interface{}, extensions []extension.Extension) interface{} {
 	decodedArray := make([]interface{}, len(encodedArray))
 
 	for i, encodedValue := range encodedArray {
-		decodedArray[i] = processEncodedData(encodedValue)
+		decodedArray[i] = processEncodedData(encodedValue, extensions)
 	}
 
 	return decodedArray

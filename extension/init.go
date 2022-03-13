@@ -2,6 +2,7 @@ package extension
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -11,32 +12,27 @@ type Extension interface {
 	Decode(value interface{}) interface{}
 }
 
-var extensions map[string]Extension
-
-func init() {
-	extensions = make(map[string]Extension)
-	AddExtension("EsonDatetime", DateTimeExtension{})
-}
-
-func AddExtension(name string, extension Extension) {
-	extensions[name] = extension
-}
-
-func EncodeValue(key string, value interface{}) (string, interface{}) {
-	for name, ext := range extensions {
+func EncodeValue(key string, value interface{}, extensions []Extension) (string, interface{}) {
+	for _, ext := range extensions {
 		if ext.ShouldEncode(value) {
+			name := reflect.TypeOf(ext).Name()
 			return fmt.Sprintf("%s~%s", name, key), ext.Encode(value)
 		}
 	}
 	return key, value
 }
 
-func DecodeValue(key string, encodedValue interface{}) (string, interface{}) {
+func DecodeValue(key string, encodedValue interface{}, extensions []Extension) (string, interface{}) {
 	keyParts := strings.Split(key, "~")
 	if len(keyParts) != 2 {
 		return key, encodedValue
 	}
-	ext, ok := extensions[keyParts[0]]
+
+	extensionsMap := make(map[string]Extension)
+	for _, extension := range extensions {
+		extensionsMap[reflect.TypeOf(extension).Name()] = extension
+	}
+	ext, ok := extensionsMap[keyParts[0]]
 	if !ok {
 		return keyParts[1], encodedValue
 	}
