@@ -9,6 +9,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
@@ -23,4 +25,16 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage.txt
         flags: golang-core
-        fail_ci_if_error: true
+        fail_ci_if_error: false
+    - uses: actions-ecosystem/action-get-latest-tag@v1
+        name: Get Current Tag Deployed
+        id: get-current-tag
+    - name: Get Latest Tag
+      id: get-latest-tag
+      run: echo "::set-output name=tag::$(cat version)"
+    - uses: actions-ecosystem/action-push-tag@v1
+      name: Push latest Version
+      with:
+        tag: ${{ steps.get-latest-tag.outputs.tag }}
+        message: '${{ steps.get-latest-tag.outputs.tag }}: ${{ github.event.head_commit.message }}'
+      if: ${{ steps.get-latest-tag.outputs.tag != steps.get-current-tag.outputs.tag }}

@@ -34,6 +34,9 @@ func preProcess(tagToUse string, goObject interface{}, extensions []extension.Ex
 	objectValue := reflect.ValueOf(goObject)
 	if objectValue.Type().Kind() == reflect.Ptr {
 		objectValue = reflect.Indirect(objectValue)
+		if objectValue.IsZero() {
+			return nil
+		}
 		goObject = objectValue.Interface()
 	}
 
