@@ -106,7 +106,7 @@ package main
 
 import (
 	"time"
-	"github.com/alt4dev/eson/extension"
+	"github.com/alt4dev/eson"
 )
 
 const MilliSecMultiplier int64 = 1000000
@@ -130,20 +130,37 @@ func (ext DateTimeExtension) Decode(encodedValue interface{}) interface{} {
 
 // You can add the extension for use as follows
 func main() {
-    extension.AddExtension("EsonDatetime", DateTimeExtension{})
+    eson.AddExtension(DateTimeExtension{})
 }
 ```
 
+A default set of extensions is used whenever you call `eson.Encode`, `eson.EncodeWithTag`, `eson.Decode` or `eson.DecodeWithTag`
+You can however specify the extensions to use per call on any of these functions. e.g.
+
+```go
+
+```
+
 ### Custom Tags
-Eson allows custom tags. By default the tag `json` is used. You can however choose any tag you want by:
+Eson allows custom tags. By default, the tag `json` is used. You can however choose any tag you want by:
 
 ```go
 package main
 
+import "github.com/alt4dev/eson"
+
 "github.com/alt4dev/eson"
 
 func main() {
+	// Used whenever you call eson.Encode
 	eson.SetTagName("my-tag")
+
+	// Use once
+	eson.EncodeWithTag("my-tag", map[string]interface{}{}, false)
 }
 ```
+
+### Known Issues
+- Decoding to a pointer doesn't work, e.g. We can encode a `*time.Time` in a struct but we can't decode it back
+    <br/>*We welcome any contributors to help fix this*
 

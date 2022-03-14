@@ -2,6 +2,7 @@ package eson
 
 import (
 	"fmt"
+	"github.com/alt4dev/eson/extension"
 	"testing"
 	"time"
 )
@@ -100,6 +101,53 @@ func TestEncodeList(t *testing.T) {
 		t.Error("UnExpected JSON output")
 		t.Error("Expected:", expectedOutput)
 		t.Error("Found:   ", encodedData)
+		return
+	}
+}
+
+func TestEncodeNilPointers(t *testing.T) {
+	type Range struct {
+		Start time.Time
+		End   *time.Time
+	}
+
+	r1 := Range{
+		Start: time.Now(),
+		End:   nil,
+	}
+
+	expectedOutput := fmt.Sprintf(`{"End":null,"EsonDatetime~Start":%v}`, r1.Start.UnixNano()/extension.MilliSecMultiplier)
+	encoded, err := Encode(r1, false)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if encoded != expectedOutput {
+		t.Error("UnExpected JSON output")
+		t.Error("Expected:", expectedOutput)
+		t.Error("Found:   ", encoded)
+		return
+	}
+
+	now := time.Now()
+
+	r2 := Range{
+		Start: time.Now(),
+		End:   &now,
+	}
+
+	expectedOutput = fmt.Sprintf(`{"EsonDatetime~End":%v,"EsonDatetime~Start":%v}`, r2.End.UnixNano()/extension.MilliSecMultiplier, r2.Start.UnixNano()/extension.MilliSecMultiplier)
+	encoded, err = Encode(r2, false)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if encoded != expectedOutput {
+		t.Error("UnExpected JSON output")
+		t.Error("Expected:", expectedOutput)
+		t.Error("Found:   ", encoded)
 		return
 	}
 }

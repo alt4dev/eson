@@ -6,6 +6,7 @@ import (
 	"reflect"
 )
 
+// EncodeWithTag is similar to Encode but allows an extra tag parameter instead of the default Tag
 func EncodeWithTag(tag string, goObject interface{}, pretty bool, extensions ...extension.Extension) (string, error) {
 	// Use default extensions if None are provided in the call.
 	if len(extensions) == 0 {
@@ -26,6 +27,8 @@ func EncodeWithTag(tag string, goObject interface{}, pretty bool, extensions ...
 	return string(resp), nil
 }
 
+// Encode will convert the object provided to a JSON string.
+// you can add extensions to use instead of the default extensions by including them as parameters to this function.
 func Encode(goObject interface{}, pretty bool, extensions ...extension.Extension) (string, error) {
 	return EncodeWithTag(*tagName, goObject, pretty, extensions...)
 }
@@ -33,10 +36,10 @@ func Encode(goObject interface{}, pretty bool, extensions ...extension.Extension
 func preProcess(tagToUse string, goObject interface{}, extensions []extension.Extension) (processedObject interface{}) {
 	objectValue := reflect.ValueOf(goObject)
 	if objectValue.Type().Kind() == reflect.Ptr {
-		objectValue = reflect.Indirect(objectValue)
 		if objectValue.IsZero() {
 			return nil
 		}
+		objectValue = reflect.Indirect(objectValue)
 		goObject = objectValue.Interface()
 	}
 

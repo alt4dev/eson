@@ -13,6 +13,15 @@ type Extension interface {
 }
 
 func EncodeValue(key string, value interface{}, extensions []Extension) (string, interface{}) {
+	// Convert pointers to values
+	reflectedValue := reflect.ValueOf(value)
+	if reflectedValue.Type().Kind() == reflect.Ptr {
+		// Make sure that the value is not nil
+		if reflectedValue.IsZero() {
+			return key, value
+		}
+		value = reflect.Indirect(reflectedValue).Interface()
+	}
 	for _, ext := range extensions {
 		if ext.ShouldEncode(value) {
 			name := reflect.TypeOf(ext).Name()

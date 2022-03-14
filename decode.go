@@ -6,6 +6,7 @@ import (
 	"reflect"
 )
 
+// DecodeWithTag is similar to Decode but allows an extra tag parameter instead of the default Tag
 func DecodeWithTag(tag string, jsonString string, destination interface{}, extensions ...extension.Extension) error {
 	var encodedData interface{}
 	err := json.Unmarshal([]byte(jsonString), &encodedData)
@@ -23,6 +24,8 @@ func DecodeWithTag(tag string, jsonString string, destination interface{}, exten
 	return nil
 }
 
+// Decode the string provided to the destination object.
+// you can add extensions to use instead of the default extensions by including them as parameters to this function.
 func Decode(jsonString string, destination interface{}, extensions ...extension.Extension) error {
 	return DecodeWithTag(*tagName, jsonString, destination, extensions...)
 }
