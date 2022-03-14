@@ -27,8 +27,8 @@ jobs:
         flags: golang-core
         fail_ci_if_error: false
     - uses: actions-ecosystem/action-get-latest-tag@v1
-        name: Get Current Tag Deployed
-        id: get-current-tag
+      name: Get Current Tag Deployed
+      id: get-current-tag
     - name: Get Latest Tag
       id: get-latest-tag
       run: echo "::set-output name=tag::$(cat version)"
